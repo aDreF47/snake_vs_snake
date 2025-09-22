@@ -39,7 +39,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # Windows
-python -m venv .venv
+py -m venv .venv
 .venv\Scripts\activate
 
 # Instalar y ejecutar (todos los OS)
@@ -62,7 +62,7 @@ snake_vs_snake/
 │   └── estrategias.py  # Estrategias (aleatorio, greedy, minimax)
 ├── gui/            # Interfaz gráfica con pygame
 │   └── interfaz.py     # Pantallas y controles
-└── tests/
+├── tests/
 │   └── test.py      # Pruebas básicas
 └── main.py         # Punto de entrada
 
@@ -119,10 +119,6 @@ git merge persona3-gui
 ### Testing
 
 ```bash
-# Con Docker
-docker-compose --profile test up
-
-# Local
 pytest tests/
 pytest tests/ --cov=core --cov=ai --cov=gui
 ```
