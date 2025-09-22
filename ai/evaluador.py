@@ -38,38 +38,63 @@ class FuncionEvaluadora:
 
     def _contar_movimientos_seguros(self, estado: EstadoJuego, jugador: str, motor_juego) -> int:
         """
-        Cuenta movimientos válidos de forma segura sin afectar el estado original
+        Cuenta movimientos válidos usando el motor - SOLO desde la cabeza
         """
         try:
-            # Método 1: Usar el motor si está disponible
-            estado_original_turno = estado.turno
-            estado.turno = jugador
+            # Crear motor temporal para evaluar este estado específico
+            motor_temp = type(motor_juego)()
+            motor_temp.estado_actual = estado.copiar()
             
-            movimientos = motor_juego.obtener_movimientos_validos(jugador)
+            # Usar el método del motor que ya maneja correctamente las cabezas
+            movimientos = motor_temp.obtener_movimientos_validos(jugador)
             cantidad = len(movimientos) if movimientos else 0
-            
-            # Restaurar turno original
-            estado.turno = estado_original_turno
             
             return cantidad
             
         except Exception as e:
             print(f"[DEBUG] Error con motor_juego para {jugador}: {e}, usando conteo manual")
-            # Método 2: Conteo manual como fallback
-            return self._contar_movimientos_manual(estado, jugador)
+            # Fallback: usar el motor original directamente
+            try:
+                turno_original = estado.turno
+                estado.turno = jugador
+                movimientos = motor_juego.obtener_movimientos_validos(jugador)
+                estado.turno = turno_original
+                return len(movimientos) if movimientos else 0
+            except Exception as e2:
+                print(f"[DEBUG] Error con motor original: {e2}")
+                return 0
 
     def _contar_movimientos_manual(self, estado: EstadoJuego, jugador: str) -> int:
         """
-        Cuenta movimientos válidos manualmente
+        Fallback: cuenta movimientos manualmente desde las cabezas
         """
         try:
-            contador = 0
-            tablero = estado.tablero
+            # Obtener la cabeza del jugador desde el estado
+            cabeza = estado.cabeza_azul if jugador == "azul" else estado.cabeza_roja
             
-            for y in range(len(tablero)):
-                for x in range(len(tablero[y])):
-                    if tablero[y][x] == "":  # Casilla vacía
-                        contador += 1
+            # Si no hay cabeza, no hay movimientos (o el juego no ha empezado)
+            if cabeza is None:
+                # Si no hay cabeza, cualquier casilla vacía es válida (inicio de juego)
+                contador = 0
+                for y in range(len(estado.tablero)):
+                    for x in range(len(estado.tablero[y])):
+                        if estado.tablero[y][x] == "":
+                            contador += 1
+                return contador
+            
+            # Contar casillas vacías adyacentes a la cabeza
+            contador = 0
+            direcciones = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            
+            for dx, dy in direcciones:
+                nueva_x = cabeza.x + dx
+                nueva_y = cabeza.y + dy
+                
+                # Verificar límites y si la casilla está vacía
+                if (0 <= nueva_x < len(estado.tablero[0]) and 
+                    0 <= nueva_y < len(estado.tablero) and
+                    estado.tablero[nueva_y][nueva_x] == ""):
+                    contador += 1
                         
             return contador
             

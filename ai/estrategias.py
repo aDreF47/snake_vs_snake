@@ -76,13 +76,13 @@ class EstrategiaMinimax(EstrategiaIA):
         try:
             print(f"[DEBUG] IA Minimax iniciando movimiento para jugador: {self.jugador}")
             
-            # Primero intentar con movimientos válidos del motor
+            # USAR EL MOTOR CORRECTAMENTE - solo movimientos desde la cabeza
             movimientos = motor_juego.obtener_movimientos_validos(self.jugador)
             if not movimientos:
                 print("[DEBUG] No hay movimientos válidos disponibles")
                 return None
             
-            print(f"[DEBUG] Movimientos válidos encontrados: {len(movimientos)}")
+            print(f"[DEBUG] Movimientos válidos desde cabeza encontrados: {len(movimientos)}")
             
             # Si solo hay un movimiento, devolverlo directamente
             if len(movimientos) == 1:
@@ -91,7 +91,6 @@ class EstrategiaMinimax(EstrategiaIA):
             
             estado_actual = motor_juego.obtener_estado_actual()
             
-            # Implementación simplificada para debugging
             mejor_movimiento = None
             mejor_valor = float("-inf")
             
@@ -100,16 +99,19 @@ class EstrategiaMinimax(EstrategiaIA):
             for i, movimiento in enumerate(movimientos):
                 print(f"[DEBUG] Evaluando movimiento {i+1}/{len(movimientos)}: {movimiento}")
                 
-                # Simular el movimiento
-                estado_prueba = estado_actual.copiar()
-                estado_prueba.tablero[movimiento.y][movimiento.x] = self.jugador
+                # USAR EL MÉTODO DE SIMULACIÓN DEL MOTOR
+                estado_simulado = motor_juego.simular_movimiento(estado_actual, movimiento, self.jugador)
                 
-                # Llamar a minimax con profundidad reducida inicialmente
+                if estado_simulado is None:
+                    print(f"[DEBUG] Movimiento {movimiento} no es válido según simulación")
+                    continue
+                
+                # Llamar a minimax
                 try:
                     valor, _ = self.minimax(
-                        estado_prueba,
-                        min(2, self.profundidad - 1),  # Reducir profundidad inicialmente
-                        False,  # Siguiente turno es del oponente
+                        estado_simulado,
+                        self.profundidad - 1,
+                        False,  # Siguiente turno es del oponente (minimizar)
                         motor_juego
                     )
                     
@@ -129,7 +131,7 @@ class EstrategiaMinimax(EstrategiaIA):
             
         except Exception as e:
             print(f"[ERROR] Error en seleccionar_movimiento: {e}")
-            # Fallback: devolver movimiento aleatorio
+            # Fallback: devolver movimiento aleatorio válido
             movimientos = motor_juego.obtener_movimientos_validos(self.jugador)
             if movimientos:
                 fallback = random.choice(movimientos)
@@ -144,7 +146,7 @@ class EstrategiaMinimax(EstrategiaIA):
         es_maximizando: bool, 
         motor_juego
     ) -> Tuple[float, Optional[Posicion]]:
-        """Algoritmo minimax recursivo simplificado"""
+        """Algoritmo minimax recursivo que respeta las reglas del Snake"""
         
         try:
             # Condición de parada por profundidad
@@ -159,11 +161,11 @@ class EstrategiaMinimax(EstrategiaIA):
                     print(f"[ERROR] Error en evaluación: {e}")
                     return 0.0, None
 
-            # Determinar jugador actual
+            # Determinar jugador actual según el contexto de minimax
             jugador_actual = self.jugador if es_maximizando else self.oponente
 
-            # Obtener movimientos válidos
-            movimientos = self._obtener_movimientos_validos(estado)
+            # CRÍTICO: Obtener movimientos válidos SOLO desde la cabeza del jugador actual
+            movimientos = motor_juego.obtener_movimientos_validos(jugador_actual)
             
             if not movimientos:
                 # No hay movimientos - evaluar estado actual
@@ -182,8 +184,11 @@ class EstrategiaMinimax(EstrategiaIA):
                 mejor_valor = float("-inf")
                 
                 for movimiento in movimientos:
-                    # Crear nuevo estado
-                    nuevo_estado = self._aplicar_movimiento(estado, movimiento, jugador_actual)
+                    # USAR SIMULACIÓN CORRECTA DEL MOTOR
+                    nuevo_estado = motor_juego.simular_movimiento(estado, movimiento, jugador_actual)
+                    
+                    if nuevo_estado is None:
+                        continue  # Movimiento inválido
                     
                     # Llamada recursiva
                     valor, _ = self.minimax(
@@ -201,8 +206,11 @@ class EstrategiaMinimax(EstrategiaIA):
                 mejor_valor = float("inf")
                 
                 for movimiento in movimientos:
-                    # Crear nuevo estado
-                    nuevo_estado = self._aplicar_movimiento(estado, movimiento, jugador_actual)
+                    # USAR SIMULACIÓN CORRECTA DEL MOTOR
+                    nuevo_estado = motor_juego.simular_movimiento(estado, movimiento, jugador_actual)
+                    
+                    if nuevo_estado is None:
+                        continue  # Movimiento inválido
                     
                     # Llamada recursiva
                     valor, _ = self.minimax(
@@ -230,25 +238,5 @@ class EstrategiaMinimax(EstrategiaIA):
                 print(f"[ERROR] Error en evaluación de emergencia: {e}")
                 return 0.0, None
 
-    def _obtener_movimientos_validos(self, estado: EstadoJuego) -> List[Posicion]:
-        """Obtiene todos los movimientos válidos en un estado dado"""
-        movimientos = []
-        try:
-            for y in range(len(estado.tablero)):
-                for x in range(len(estado.tablero[y])):
-                    if estado.tablero[y][x] == "":  # Casilla vacía
-                        movimientos.append(Posicion(x, y))
-        except Exception as e:
-            print(f"[ERROR] Error obteniendo movimientos válidos: {e}")
-        return movimientos
 
-    def _aplicar_movimiento(self, estado: EstadoJuego, posicion: Posicion, jugador: str) -> EstadoJuego:
-        """Crea un nuevo estado aplicando un movimiento"""
-        try:
-            nuevo_estado = estado.copiar()
-            nuevo_estado.tablero[posicion.y][posicion.x] = jugador
-            # No modificar el turno aquí - lo maneja el algoritmo minimax
-            return nuevo_estado
-        except Exception as e:
-            print(f"[ERROR] Error aplicando movimiento: {e}")
-            return estado  # Retornar estado original si hay error
+
