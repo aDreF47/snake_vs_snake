@@ -1,0 +1,12 @@
+# Dependencias principales
+pygame>=2.6.1
+numpy>=2.1.1
+
+# Dependencias de desarrollo y testing
+pytest==7.4.0
+pytest-cov==4.1.0
+black==23.7.0
+flake8==6.0.0
+
+# Opcional: para mejores algoritmos de IA
+scikit-learn>=1.5.2
