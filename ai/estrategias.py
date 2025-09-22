@@ -73,178 +73,182 @@ class EstrategiaMinimax(EstrategiaIA):
         INTERFAZ PARA PERSONA 3
         Implementa minimax con la profundidad especificada
         """
-        estado_actual = motor_juego.obtener_estado_actual()
-        
-        # Verificar que es nuestro turno
-        if estado_actual.turno != self.jugador:
-            return None
+        try:
+            print(f"[DEBUG] IA Minimax iniciando movimiento para jugador: {self.jugador}")
             
-        _, mejor_movimiento = self.minimax(
-            estado_actual,
-            self.profundidad,
-            True,  # Maximizando para la IA
-            motor_juego,
-            float("-inf"),
-            float("inf")
-        )
-        return mejor_movimiento
+            # Primero intentar con movimientos válidos del motor
+            movimientos = motor_juego.obtener_movimientos_validos(self.jugador)
+            if not movimientos:
+                print("[DEBUG] No hay movimientos válidos disponibles")
+                return None
+            
+            print(f"[DEBUG] Movimientos válidos encontrados: {len(movimientos)}")
+            
+            # Si solo hay un movimiento, devolverlo directamente
+            if len(movimientos) == 1:
+                print(f"[DEBUG] Solo un movimiento disponible: {movimientos[0]}")
+                return movimientos[0]
+            
+            estado_actual = motor_juego.obtener_estado_actual()
+            
+            # Implementación simplificada para debugging
+            mejor_movimiento = None
+            mejor_valor = float("-inf")
+            
+            print(f"[DEBUG] Evaluando {len(movimientos)} movimientos...")
+            
+            for i, movimiento in enumerate(movimientos):
+                print(f"[DEBUG] Evaluando movimiento {i+1}/{len(movimientos)}: {movimiento}")
+                
+                # Simular el movimiento
+                estado_prueba = estado_actual.copiar()
+                estado_prueba.tablero[movimiento.y][movimiento.x] = self.jugador
+                
+                # Llamar a minimax con profundidad reducida inicialmente
+                try:
+                    valor, _ = self.minimax(
+                        estado_prueba,
+                        min(2, self.profundidad - 1),  # Reducir profundidad inicialmente
+                        False,  # Siguiente turno es del oponente
+                        motor_juego
+                    )
+                    
+                    print(f"[DEBUG] Movimiento {movimiento} evaluado con valor: {valor}")
+                    
+                    if valor > mejor_valor:
+                        mejor_valor = valor
+                        mejor_movimiento = movimiento
+                        print(f"[DEBUG] Nuevo mejor movimiento: {movimiento} con valor {valor}")
+                        
+                except Exception as e:
+                    print(f"[DEBUG] Error evaluando movimiento {movimiento}: {e}")
+                    continue
+            
+            print(f"[DEBUG] Mejor movimiento seleccionado: {mejor_movimiento}")
+            return mejor_movimiento
+            
+        except Exception as e:
+            print(f"[ERROR] Error en seleccionar_movimiento: {e}")
+            # Fallback: devolver movimiento aleatorio
+            movimientos = motor_juego.obtener_movimientos_validos(self.jugador)
+            if movimientos:
+                fallback = random.choice(movimientos)
+                print(f"[FALLBACK] Usando movimiento aleatorio: {fallback}")
+                return fallback
+            return None
 
     def minimax(
         self, 
         estado: EstadoJuego, 
         profundidad: int, 
         es_maximizando: bool, 
-        motor_juego,
-        alpha: float = float("-inf"),
-        beta: float = float("inf")
+        motor_juego
     ) -> Tuple[float, Optional[Posicion]]:
-        """Algoritmo minimax recursivo con poda alfa-beta"""
+        """Algoritmo minimax recursivo simplificado"""
         
-        # Verificar si el juego terminó en este estado
-        ganador = self._verificar_ganador(estado, motor_juego)
-        if ganador is not None:
-            if ganador == self.jugador:
-                return 1000 + profundidad, None  # Victoria para IA
-            elif ganador == self.oponente:
-                return -1000 - profundidad, None  # Victoria para humano
-            else:
-                return 0, None  # Empate
-        
-        # Condición de parada por profundidad
-        if profundidad == 0:
-            valor = self.evaluador.evaluar_estado(estado, motor_juego)
-            # Ajustar evaluación según perspectiva
-            if self.jugador == "rojo":
-                valor = -valor  # Invertir si somos rojos
-            return valor, None
+        try:
+            # Condición de parada por profundidad
+            if profundidad <= 0:
+                try:
+                    valor = self.evaluador.evaluar_estado(estado, motor_juego)
+                    # Ajustar evaluación según perspectiva del jugador IA
+                    if self.jugador == "rojo":
+                        valor = -valor
+                    return valor, None
+                except Exception as e:
+                    print(f"[ERROR] Error en evaluación: {e}")
+                    return 0.0, None
 
-        # Determinar jugador actual
-        jugador_actual = self.jugador if es_maximizando else self.oponente
+            # Determinar jugador actual
+            jugador_actual = self.jugador if es_maximizando else self.oponente
 
-        # Obtener movimientos válidos para el jugador actual
-        movimientos = self._obtener_movimientos_validos(estado, jugador_actual)
-        
-        if not movimientos:
-            # No hay movimientos disponibles - estado terminal
-            return 0, None
-
-        mejor_movimiento = None
-        
-        if es_maximizando:
-            mejor_valor = float("-inf")
+            # Obtener movimientos válidos
+            movimientos = self._obtener_movimientos_validos(estado)
             
-            for movimiento in movimientos:
-                # Crear nuevo estado con el movimiento
-                nuevo_estado = self._aplicar_movimiento(estado, movimiento, jugador_actual)
+            if not movimientos:
+                # No hay movimientos - evaluar estado actual
+                try:
+                    valor = self.evaluador.evaluar_estado(estado, motor_juego)
+                    if self.jugador == "rojo":
+                        valor = -valor
+                    return valor, None
+                except Exception as e:
+                    print(f"[ERROR] Error evaluando estado sin movimientos: {e}")
+                    return 0.0, None
+
+            mejor_movimiento = None
+            
+            if es_maximizando:
+                mejor_valor = float("-inf")
                 
-                # Llamada recursiva
-                valor, _ = self.minimax(
-                    nuevo_estado, 
-                    profundidad - 1, 
-                    False, 
-                    motor_juego,
-                    alpha,
-                    beta
-                )
-                
-                if valor > mejor_valor:
-                    mejor_valor = valor
-                    mejor_movimiento = movimiento
-                
-                # Poda alfa-beta
-                alpha = max(alpha, valor)
-                if beta <= alpha:
-                    break
+                for movimiento in movimientos:
+                    # Crear nuevo estado
+                    nuevo_estado = self._aplicar_movimiento(estado, movimiento, jugador_actual)
                     
-        else:  # Minimizando
-            mejor_valor = float("inf")
+                    # Llamada recursiva
+                    valor, _ = self.minimax(
+                        nuevo_estado, 
+                        profundidad - 1, 
+                        False,  # Cambiar a minimizar
+                        motor_juego
+                    )
+                    
+                    if valor > mejor_valor:
+                        mejor_valor = valor
+                        mejor_movimiento = movimiento
+                        
+            else:  # Minimizando
+                mejor_valor = float("inf")
+                
+                for movimiento in movimientos:
+                    # Crear nuevo estado
+                    nuevo_estado = self._aplicar_movimiento(estado, movimiento, jugador_actual)
+                    
+                    # Llamada recursiva
+                    valor, _ = self.minimax(
+                        nuevo_estado, 
+                        profundidad - 1, 
+                        True,  # Cambiar a maximizar
+                        motor_juego
+                    )
+                    
+                    if valor < mejor_valor:
+                        mejor_valor = valor
+                        mejor_movimiento = movimiento
+
+            return mejor_valor, mejor_movimiento
             
-            for movimiento in movimientos:
-                # Crear nuevo estado con el movimiento
-                nuevo_estado = self._aplicar_movimiento(estado, movimiento, jugador_actual)
-                
-                # Llamada recursiva
-                valor, _ = self.minimax(
-                    nuevo_estado, 
-                    profundidad - 1, 
-                    True, 
-                    motor_juego,
-                    alpha,
-                    beta
-                )
-                
-                if valor < mejor_valor:
-                    mejor_valor = valor
-                    mejor_movimiento = movimiento
-                
-                # Poda alfa-beta
-                beta = min(beta, valor)
-                if beta <= alpha:
-                    break
+        except Exception as e:
+            print(f"[ERROR] Error en minimax: {e}")
+            # Retornar evaluación simple del estado actual
+            try:
+                valor = self.evaluador.evaluar_estado(estado, motor_juego)
+                if self.jugador == "rojo":
+                    valor = -valor
+                return valor, None
+            except Exception as e:
+                print(f"[ERROR] Error en evaluación de emergencia: {e}")
+                return 0.0, None
 
-        return mejor_valor, mejor_movimiento
-
-    def _obtener_movimientos_validos(self, estado: EstadoJuego, jugador: str) -> List[Posicion]:
-        """Obtiene todos los movimientos válidos para un jugador en un estado dado"""
+    def _obtener_movimientos_validos(self, estado: EstadoJuego) -> List[Posicion]:
+        """Obtiene todos los movimientos válidos en un estado dado"""
         movimientos = []
-        for y in range(len(estado.tablero)):
-            for x in range(len(estado.tablero[y])):
-                if estado.tablero[y][x] == "":  # Casilla vacía
-                    movimientos.append(Posicion(x, y))
+        try:
+            for y in range(len(estado.tablero)):
+                for x in range(len(estado.tablero[y])):
+                    if estado.tablero[y][x] == "":  # Casilla vacía
+                        movimientos.append(Posicion(x, y))
+        except Exception as e:
+            print(f"[ERROR] Error obteniendo movimientos válidos: {e}")
         return movimientos
 
     def _aplicar_movimiento(self, estado: EstadoJuego, posicion: Posicion, jugador: str) -> EstadoJuego:
         """Crea un nuevo estado aplicando un movimiento"""
-        nuevo_estado = estado.copiar()
-        nuevo_estado.tablero[posicion.y][posicion.x] = jugador
-        
-        # Cambiar turno
-        nuevo_estado.turno = self.oponente if jugador == self.jugador else self.jugador
-        
-        return nuevo_estado
-
-    def _verificar_ganador(self, estado: EstadoJuego, motor_juego) -> Optional[str]:
-        """Verifica si hay un ganador en el estado actual"""
         try:
-            # Crear un motor temporal para verificar el estado
-            motor_temp = type(motor_juego)()
-            motor_temp.estado = estado
-            
-            juego_terminado, ganador = motor_temp.verificar_fin_juego()
-            if juego_terminado:
-                return ganador
-            return None
-        except:
-            # Si hay error, evaluar manualmente
-            return self._verificar_ganador_manual(estado)
-    
-    def _verificar_ganador_manual(self, estado: EstadoJuego) -> Optional[str]:
-        """Verificación manual de ganador (fallback)"""
-        tablero = estado.tablero
-        filas = len(tablero)
-        cols = len(tablero[0]) if filas > 0 else 0
-        
-        # Verificar filas, columnas y diagonales
-        for jugador in [self.jugador, self.oponente]:
-            # Filas
-            for y in range(filas):
-                if all(tablero[y][x] == jugador for x in range(cols)):
-                    return jugador
-            
-            # Columnas  
-            for x in range(cols):
-                if all(tablero[y][x] == jugador for y in range(filas)):
-                    return jugador
-                    
-            # Diagonales (si es tablero cuadrado)
-            if filas == cols:
-                if all(tablero[i][i] == jugador for i in range(filas)):
-                    return jugador
-                if all(tablero[i][cols-1-i] == jugador for i in range(filas)):
-                    return jugador
-        
-        # Verificar empate (tablero lleno)
-        if all(tablero[y][x] != "" for y in range(filas) for x in range(cols)):
-            return "empate"
-            
-        return None
+            nuevo_estado = estado.copiar()
+            nuevo_estado.tablero[posicion.y][posicion.x] = jugador
+            # No modificar el turno aquí - lo maneja el algoritmo minimax
+            return nuevo_estado
+        except Exception as e:
+            print(f"[ERROR] Error aplicando movimiento: {e}")
+            return estado  # Retornar estado original si hay error
