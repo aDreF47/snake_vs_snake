@@ -5,6 +5,7 @@ from core.interfaces import (
     TABLERO_TAMANO,
     AZUL,
     ROJO,
+    VACIO,
     Dificultad,
     Posicion,
     EstadoJuego,
@@ -22,10 +23,11 @@ COLORS = {
     "board": (200, 200, 200),
     "grid": (150, 150, 150),
     "text": (50, 50, 50),
-    "A": (100, 100, 255),
-    "R": (255, 100, 100),
-    "A_cabeza": (150, 150, 255),
-    "R_cabeza": (255, 150, 150),
+    ROJO: (255, 100, 100),           # 'R' -> rojo
+    AZUL: (100, 100, 255),           # 'A' -> azul  
+    VACIO: (255, 255, 255),          # 'V' -> blanco para casillas vacías
+    f'{ROJO}_cabeza': (255, 150, 150),  # 'R_cabeza'
+    f'{AZUL}_cabeza': (150, 150, 255),  # 'A_cabeza
     "boton": (180, 180, 180),
     "boton_hover": (150, 150, 150),
 }
@@ -220,6 +222,18 @@ class PantallaJuego:
                     color_ficha = (
                         COLORS[f"{color}_cabeza"] if es_cabeza else COLORS[color]
                     )
+
+                    if es_cabeza:
+                        color_final = COLORS[f"{color}_cabeza"]
+                    else:
+                        color_final = COLORS[color]  # Aquí falla si color='V'
+
+                    if color == VACIO:
+                        color_final = COLORS[VACIO]
+                    elif es_cabeza:
+                        color_final = COLORS[f"{color}_cabeza"]
+                    else:
+                        color_final = COLORS[color]
 
                     # Dibujar círculo
                     centro = rect.center
