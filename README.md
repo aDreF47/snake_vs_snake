@@ -19,44 +19,28 @@ Snake vs Snake es una variante estratégica del clásico juego Snake donde dos j
 
 ## Configuración del Entorno
 
-### Opción 1: Docker (Recomendado)
-
-```bash
-# Clonar repositorio
-git clone <repo-url>
-cd snake_vs_snake
-
-# Construir y ejecutar con Docker Compose
-docker-compose up --build
-
-# Para ejecutar en modo desarrollo
-docker-compose run --rm snake-dev
-```
-
-### Opción 2: Entorno Local
-
-**Windows:**
+### Opción 1: Windows
 ```cmd
 setup.bat
 run.bat
 ```
 
-**Linux/Mac:**
+### Opción 2: Linux/Mac
 ```bash
 chmod +x setup.sh run.sh
 ./setup.sh
 ./run.sh
 ```
 
-**Manual (cualquier OS):**
+### Opción 3: Manual (cualquier OS):**
 ```bash
 # Linux/Mac
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 
 # Windows
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate
 
 # Instalar y ejecutar (todos los OS)
 pip install -r requirements.txt
@@ -78,7 +62,10 @@ snake_vs_snake/
 │   └── estrategias.py  # Estrategias (aleatorio, greedy, minimax)
 ├── gui/            # Interfaz gráfica con pygame
 │   └── interfaz.py     # Pantallas y controles
+└── tests/
+│   └── test.py      # Pruebas básicas
 └── main.py         # Punto de entrada
+
 ```
 
 ### Algoritmos Implementados
@@ -123,7 +110,7 @@ git checkout persona2-ia       # Para módulo ai
 git checkout persona3-gui      # Para módulo gui
 
 # Integración
-git checkout main
+git checkout master
 git merge persona1-motor
 git merge persona2-ia  
 git merge persona3-gui
@@ -172,8 +159,3 @@ class EstadoJuego:
     cabeza_azul: Optional[Posicion]
     cabeza_roja: Optional[Posicion]
 ```
-
-## Licencia
-
-Proyecto académico - Universidad Nacional Mayor de San Marcos
-Facultad de Ingeniería de Sistemas e Informática

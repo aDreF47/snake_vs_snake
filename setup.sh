@@ -11,14 +11,14 @@ fi
 echo "✅ Python $python_version detectado"
 
 # Crear entorno virtual
-if [ ! -d "venv" ]; then
+if [ ! -d ".venv" ]; then
     echo "📦 Creando entorno virtual..."
-    python3 -m venv venv
+    python3 -m venv .venv
 fi
 
 # Activar entorno virtual
 echo "🔌 Activando entorno virtual..."
-source venv/bin/activate
+source .venv/bin/activate
 
 # Instalar dependencias
 echo "📚 Instalando dependencias..."
@@ -30,5 +30,5 @@ echo "🎮 Verificando pygame..."
 python3 -c "import pygame; print('✅ Pygame funciona correctamente')"
 
 echo "🚀 Setup completado! Para ejecutar:"
-echo "   source venv/bin/activate"
+echo "   source .venv/bin/activate"
 echo "   python main.py"
