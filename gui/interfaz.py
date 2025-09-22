@@ -11,7 +11,6 @@ from core.interfaces import (
     EstadoJuego,
 )
 
-
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 BOARD_OFFSET_X = 100
@@ -23,24 +22,20 @@ COLORS = {
     "board": (200, 200, 200),
     "grid": (150, 150, 150),
     "text": (50, 50, 50),
-    ROJO: (255, 100, 100),           # 'R' -> rojo
-    AZUL: (100, 100, 255),           # 'A' -> azul  
-    VACIO: (255, 255, 255),          # 'V' -> blanco para casillas vacías
-    f'{ROJO}_cabeza': (255, 150, 150),  # 'R_cabeza'
-    f'{AZUL}_cabeza': (150, 150, 255),  # 'A_cabeza
+    ROJO: (255, 100, 100),
+    AZUL: (100, 100, 255),
+    VACIO: (255, 255, 255),
+    f'{ROJO}_cabeza': (255, 150, 150),
+    f'{AZUL}_cabeza': (150, 150, 255),
     "boton": (180, 180, 180),
     "boton_hover": (150, 150, 150),
 }
 
 
 class PantallaDificultad:
-    """Pantalla de selección de dificultad"""
-
     def __init__(self, pantalla):
         self.pantalla = pantalla
         self.dificultad_seleccionada: Optional[Dificultad] = None
-
-        # Configurar botones
         self.botones = {
             Dificultad.PRINCIPIANTE: pygame.Rect(300, 200, 200, 50),
             Dificultad.NORMAL: pygame.Rect(300, 300, 200, 50),
@@ -48,15 +43,10 @@ class PantallaDificultad:
         }
 
     def manejar_eventos(self, eventos) -> bool:
-        """
-        Procesa eventos de pygame
-        Returns: True si se seleccionó dificultad, False si continúa
-        """
         for evento in eventos:
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 for dificultad, rect in self.botones.items():
@@ -66,60 +56,38 @@ class PantallaDificultad:
         return False
 
     def dibujar(self) -> None:
-        """Dibuja la pantalla de selección de dificultad"""
-        # Fondo
         self.pantalla.fill(COLORS["background"])
-
-        # Título
         fuente = pygame.font.Font(None, 48)
         texto = fuente.render("Selecciona la Dificultad", True, COLORS["text"])
         self.pantalla.blit(texto, (250, 100))
-
-        # Botones
         fuente_boton = pygame.font.Font(None, 36)
         nombres = {
             Dificultad.PRINCIPIANTE: "Principiante",
             Dificultad.NORMAL: "Normal",
             Dificultad.EXPERTO: "Experto",
         }
-
         for dificultad, rect in self.botones.items():
-            # Dibujar botón
-            color = (
-                COLORS["boton_hover"]
-                if rect.collidepoint(pygame.mouse.get_pos())
-                else COLORS["boton"]
-            )
+            color = COLORS["boton_hover"] if rect.collidepoint(pygame.mouse.get_pos()) else COLORS["boton"]
             pygame.draw.rect(self.pantalla, color, rect)
-
-            # Texto del botón
-            texto = fuente_boton.render(nombres[dificultad], True, COLORS["text"])
-            pos_texto = texto.get_rect(center=rect.center)
-            self.pantalla.blit(texto, pos_texto)
-
-        pygame.display.flip()
+            texto_boton = fuente_boton.render(nombres[dificultad], True, COLORS["text"])
+            pos_texto = texto_boton.get_rect(center=rect.center)
+            self.pantalla.blit(texto_boton, pos_texto)
 
 
 class PantallaTurno:
-    """Pantalla de selección de quién inicia"""
-
     def __init__(self, pantalla):
         self.pantalla = pantalla
         self.jugador_inicial: Optional[str] = None
-
-        # Configurar botones
         self.botones = {
             AZUL: pygame.Rect(200, 300, 150, 50),
             ROJO: pygame.Rect(450, 300, 150, 50),
         }
 
     def manejar_eventos(self, eventos) -> bool:
-        """Returns: True si se seleccionó jugador inicial"""
         for evento in eventos:
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
             if evento.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 for jugador, rect in self.botones.items():
@@ -129,34 +97,18 @@ class PantallaTurno:
         return False
 
     def dibujar(self) -> None:
-        """Dibuja la pantalla de selección de turno"""
-        # Fondo
         self.pantalla.fill(COLORS["background"])
-
-        # Título
         fuente = pygame.font.Font(None, 48)
         texto = fuente.render("¿Quién inicia?", True, COLORS["text"])
         self.pantalla.blit(texto, (300, 100))
-
-        # Botones
         fuente_boton = pygame.font.Font(None, 36)
         nombres = {AZUL: "Azul", ROJO: "Rojo"}
-
         for jugador, rect in self.botones.items():
-            # Dibujar botón
-            color = (
-                COLORS["boton_hover"]
-                if rect.collidepoint(pygame.mouse.get_pos())
-                else COLORS[jugador]
-            )
+            color = COLORS["boton_hover"] if rect.collidepoint(pygame.mouse.get_pos()) else COLORS[jugador]
             pygame.draw.rect(self.pantalla, color, rect)
-
-            # Texto del botón
-            texto = fuente_boton.render(nombres[jugador], True, COLORS["text"])
-            pos_texto = texto.get_rect(center=rect.center)
-            self.pantalla.blit(texto, pos_texto)
-
-        pygame.display.flip()
+            texto_boton = fuente_boton.render(nombres[jugador], True, COLORS["text"])
+            pos_texto = texto_boton.get_rect(center=rect.center)
+            self.pantalla.blit(texto_boton, pos_texto)
 
 
 class PantallaJuego:
@@ -165,37 +117,59 @@ class PantallaJuego:
     def __init__(self, pantalla):
         self.pantalla = pantalla
         self.click_callback: Optional[Callable] = None
+        self.tiempo_inicio = None  # Para controlar el tiempo transcurrido
+
+        # Configurar botones
+        self.boton_reiniciar = pygame.Rect(
+            BOARD_OFFSET_X + TABLERO_TAMANO * CELL_SIZE + 50,  # a la derecha del tablero
+            BOARD_OFFSET_Y,
+            120,
+            50,
+        )
+        self.boton_salir = pygame.Rect(
+            BOARD_OFFSET_X + TABLERO_TAMANO * CELL_SIZE + 50,
+            BOARD_OFFSET_Y + 70,
+            120,
+            50,
+        )
 
     def establecer_callback_click(self, callback: Callable[[Posicion], None]) -> None:
         """Establece función para manejar clicks en el tablero"""
         self.click_callback = callback
 
-    def manejar_eventos(self, eventos) -> Optional[Posicion]:
+    def manejar_eventos(self, eventos) -> Optional[str]:
         """
-        INTERFAZ CON MOTOR DE JUEGO
-        Returns: Posición clickeada o None
+        Procesa eventos de pygame
+        Retorna:
+            - Posición del tablero si se clickeó allí
+            - "reiniciar" si se clickeó el botón reiniciar
+            - None en otros casos
         """
         for evento in eventos:
             if evento.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
-            if evento.type == pygame.MOUSEBUTTONDOWN and self.click_callback:
+            if evento.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
+
+                # Revisar si se clickeó el tablero
                 pos_tablero = self.convertir_pixel_a_casilla(pos)
-                if pos_tablero:
+                if pos_tablero and self.click_callback:
                     self.click_callback(pos_tablero)
+
+                # Revisar botones
+                if self.boton_reiniciar.collidepoint(pos):
+                    return "reiniciar"
+                if self.boton_salir.collidepoint(pos):
+                    pygame.quit()
+                    sys.exit()
         return None
 
     def dibujar_tablero(self, estado: EstadoJuego) -> None:
-        """
-        INTERFAZ CON MOTOR DE JUEGO
-        Dibuja el estado actual del tablero
-        """
-        # Fondo
+        """Dibuja el tablero y las fichas"""
         self.pantalla.fill(COLORS["background"])
 
-        # Tablero
+        # Dibujar tablero y fichas
         for y in range(TABLERO_TAMANO):
             for x in range(TABLERO_TAMANO):
                 rect = pygame.Rect(
@@ -204,95 +178,90 @@ class PantallaJuego:
                     CELL_SIZE,
                     CELL_SIZE,
                 )
-
-                # Dibujar casilla
                 pygame.draw.rect(self.pantalla, COLORS["board"], rect)
                 pygame.draw.rect(self.pantalla, COLORS["grid"], rect, 1)
 
-                # Dibujar ficha si hay
-                if estado.tablero[y][x]:
-                    color = estado.tablero[y][x]
+                color = estado.tablero[y][x]
+                if color != VACIO:
                     pos = Posicion(x, y)
-
-                    # Determinar si es cabeza
                     es_cabeza = (pos == estado.cabeza_azul and color == AZUL) or (
                         pos == estado.cabeza_roja and color == ROJO
                     )
-
-                    color_ficha = (
-                        COLORS[f"{color}_cabeza"] if es_cabeza else COLORS[color]
-                    )
-
-                    if es_cabeza:
-                        color_final = COLORS[f"{color}_cabeza"]
-                    else:
-                        color_final = COLORS[color]  # Aquí falla si color='V'
-
-                    if color == VACIO:
-                        color_final = COLORS[VACIO]
-                    elif es_cabeza:
-                        color_final = COLORS[f"{color}_cabeza"]
-                    else:
-                        color_final = COLORS[color]
-
-                    # Dibujar círculo
+                    color_ficha = COLORS[color]
                     centro = rect.center
                     radio = CELL_SIZE // 2 - 5
                     pygame.draw.circle(self.pantalla, color_ficha, centro, radio)
+                    if es_cabeza:
+                        # Dibujar borde negro para la cabeza
+                        pygame.draw.circle(self.pantalla, (0, 0, 0), centro, radio, 3)
+
+        # Dibujar botones
+        fuente = pygame.font.Font(None, 30)
+
+        # Botón reiniciar
+        color_reiniciar = COLORS["boton_hover"] if self.boton_reiniciar.collidepoint(pygame.mouse.get_pos()) else COLORS["boton"]
+        pygame.draw.rect(self.pantalla, color_reiniciar, self.boton_reiniciar)
+        texto_reiniciar = fuente.render("Reiniciar", True, COLORS["text"])
+        self.pantalla.blit(texto_reiniciar, texto_reiniciar.get_rect(center=self.boton_reiniciar.center))
+
+        # Botón salir
+        color_salir = COLORS["boton_hover"] if self.boton_salir.collidepoint(pygame.mouse.get_pos()) else COLORS["boton"]
+        pygame.draw.rect(self.pantalla, color_salir, self.boton_salir)
+        texto_salir = fuente.render("Salir", True, COLORS["text"])
+        self.pantalla.blit(texto_salir, texto_salir.get_rect(center=self.boton_salir.center))
 
     def dibujar_info_turno(
         self, turno_actual: str, juego_terminado: bool, ganador: Optional[str]
     ) -> None:
-        """Dibuja información de turno y estado del juego"""
+        """Dibuja información de turno, estado del juego y tiempo transcurrido"""
         fuente = pygame.font.Font(None, 36)
 
+        # Texto de turno o ganador
         if juego_terminado:
-            if ganador:
-                texto = f"¡{ganador.capitalize()} gana!"
-            else:
-                texto = "¡Empate!"
+            texto = f"¡{ganador.capitalize()} gana!" if ganador else "¡Empate!"
         else:
             texto = f"Turno: {turno_actual.capitalize()}"
 
+        # Renderizar texto principal (centro arriba)
         superficie = fuente.render(texto, True, COLORS["text"])
         pos = superficie.get_rect(centerx=WINDOW_WIDTH // 2, y=BOARD_OFFSET_Y // 2)
         self.pantalla.blit(superficie, pos)
 
-        pygame.display.flip()
+        # Calcular tiempo transcurrido en segundos
+        if self.tiempo_inicio:
+            tiempo_transcurrido = int(pygame.time.get_ticks() / 1000 - self.tiempo_inicio)
+        else:
+            tiempo_transcurrido = 0
+
+        # Mostrar tiempo en la esquina superior derecha
+        texto_tiempo = f"Tiempo: {tiempo_transcurrido}s"
+        superficie_tiempo = fuente.render(texto_tiempo, True, COLORS["text"])
+        pos_tiempo = superficie_tiempo.get_rect(topright=(WINDOW_WIDTH - 20, 20))
+        self.pantalla.blit(superficie_tiempo, pos_tiempo)
 
     def convertir_pixel_a_casilla(
         self, pos_pixel: Tuple[int, int]
     ) -> Optional[Posicion]:
         """Convierte coordenadas de pixel a coordenadas de tablero"""
         x, y = pos_pixel
-
-        # Verificar si está dentro del tablero
         if (
             BOARD_OFFSET_X <= x < BOARD_OFFSET_X + TABLERO_TAMANO * CELL_SIZE
             and BOARD_OFFSET_Y <= y < BOARD_OFFSET_Y + TABLERO_TAMANO * CELL_SIZE
         ):
-
-            # Convertir a coordenadas de tablero
             tablero_x = (x - BOARD_OFFSET_X) // CELL_SIZE
             tablero_y = (y - BOARD_OFFSET_Y) // CELL_SIZE
             return Posicion(tablero_x, tablero_y)
-
         return None
 
 
-class GestorInterfaz:
-    """Coordina todas las pantallas"""
 
+class GestorInterfaz:
     def __init__(self):
         pygame.init()
         self.pantalla = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Snake vs Snake")
         self.reloj = pygame.time.Clock()
-
-        # Estados de la interfaz
-        self.estado_actual = "dificultad"  # "dificultad", "turno", "juego"
-
-        # Pantallas
+        self.estado_actual = "dificultad"
         self.pantalla_dificultad = PantallaDificultad(self.pantalla)
         self.pantalla_turno = PantallaTurno(self.pantalla)
         self.pantalla_juego = PantallaJuego(self.pantalla)
@@ -301,8 +270,9 @@ class GestorInterfaz:
         self, callback_juego_iniciado: Callable, callback_movimiento: Callable
     ) -> None:
         """
-        MÉTODO PRINCIPAL PARA main.py
-        Ejecuta el bucle principal de pygame
+        Bucle principal de Pygame.
+        Maneja selección de dificultad, turno y el juego.
+        Permite reiniciar o salir, y muestra tiempo de partida.
         """
         ejecutando = True
         while ejecutando:
@@ -317,44 +287,67 @@ class GestorInterfaz:
             if self.estado_actual == "dificultad":
                 # Mostrar pantalla de dificultad
                 self.pantalla_dificultad.dibujar()
-                if self.pantalla_dificultad.manejar_eventos(eventos):
+                self.pantalla_dificultad.manejar_eventos(eventos)
+                if self.pantalla_dificultad.dificultad_seleccionada is not None:
                     self.estado_actual = "turno"
 
             elif self.estado_actual == "turno":
                 # Mostrar pantalla de selección de turno
                 self.pantalla_turno.dibujar()
-                if self.pantalla_turno.manejar_eventos(eventos):
+                self.pantalla_turno.manejar_eventos(eventos)
+                if self.pantalla_turno.jugador_inicial is not None:
                     # Iniciar juego
                     callback_juego_iniciado(
                         self.pantalla_dificultad.dificultad_seleccionada,
                         self.pantalla_turno.jugador_inicial,
                     )
                     self.pantalla_juego.establecer_callback_click(callback_movimiento)
+                    # Iniciar contador de tiempo
+                    self.pantalla_juego.tiempo_inicio = pygame.time.get_ticks() / 1000
                     self.estado_actual = "juego"
 
             elif self.estado_actual == "juego":
-                # Procesar eventos del juego
-                self.pantalla_juego.manejar_eventos(eventos)
+                # Procesar clicks en tablero
+                resultado = self.pantalla_juego.manejar_eventos(eventos)
 
-            # Actualizar pantalla
+                # Botones de Reiniciar y Cerrar
+                mouse_pos = pygame.mouse.get_pos()
+                boton_reiniciar = pygame.Rect(WINDOW_WIDTH - 180, 100, 160, 50)
+                boton_cerrar = pygame.Rect(WINDOW_WIDTH - 180, 180, 160, 50)
+                for evento in eventos:
+                    if evento.type == pygame.MOUSEBUTTONDOWN:
+                        if boton_reiniciar.collidepoint(mouse_pos):
+                            # Reiniciar juego
+                            self.estado_actual = "dificultad"
+                            self.pantalla_dificultad.dificultad_seleccionada = None
+                            self.pantalla_turno.jugador_inicial = None
+                        elif boton_cerrar.collidepoint(mouse_pos):
+                            ejecutando = False
+
+                # Dibujar botones
+                pygame.draw.rect(self.pantalla, COLORS["boton"], boton_reiniciar)
+                pygame.draw.rect(self.pantalla, COLORS["boton"], boton_cerrar)
+                fuente_boton = pygame.font.Font(None, 28)
+                self.pantalla.blit(fuente_boton.render("Reiniciar", True, COLORS["text"]),
+                                   boton_reiniciar.move(10, 10))
+                self.pantalla.blit(fuente_boton.render("Cerrar juego", True, COLORS["text"]),
+                                   boton_cerrar.move(10, 10))
+
+                # Dibujar tablero y info
+                estado_actual = callback_movimiento.__self__.motor_juego.obtener_estado_actual()
+                juego_terminado, ganador = callback_movimiento.__self__.motor_juego.verificar_fin_juego()
+                self.pantalla_juego.dibujar_tablero(estado_actual)
+                self.pantalla_juego.dibujar_info_turno(
+                    estado_actual.turno, juego_terminado, ganador
+                )
+
+            # Actualizar pantalla y controlar FPS
             pygame.display.flip()
-
-            # Controlar FPS
             self.reloj.tick(60)
 
         pygame.quit()
 
-    def actualizar_display_juego(
-        self,
-        estado: EstadoJuego,
-        turno: str,
-        juego_terminado: bool,
-        ganador: Optional[str],
-    ) -> None:
-        """
-        INTERFAZ PARA CONTROLADOR PRINCIPAL
-        Actualiza la pantalla con el estado actual
-        """
+    def actualizar_display_juego(self, estado: EstadoJuego, turno: str, juego_terminado: bool, ganador: Optional[str]) -> None:
         if self.estado_actual == "juego":
             self.pantalla_juego.dibujar_tablero(estado)
             self.pantalla_juego.dibujar_info_turno(turno, juego_terminado, ganador)

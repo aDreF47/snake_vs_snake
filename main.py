@@ -36,8 +36,7 @@ class ControladorPrincipal:
             callback_movimiento=self.procesar_movimiento_humano,
         )
 
-    def inicializar_juego(self, dificultad: Dificultad,
-                          jugador_inicial: str) -> None:
+    def inicializar_juego(self, dificultad: Dificultad, jugador_inicial: str) -> None:
         """Callback llamado cuando se selecciona configuración"""
         # Crear estrategia IA
         self.estrategia_ia = FactoriaEstrategias.crear_estrategia(
@@ -52,26 +51,17 @@ class ControladorPrincipal:
             self.procesar_turno_ia()
 
     def procesar_movimiento_humano(self, posicion: Posicion) -> None:
-        """
-        CALLBACK DE INTERFAZ
-        Procesa movimiento del jugador humano
-        """
-        # Validar que sea turno del humano
+        """Procesa movimiento del jugador humano"""
         estado_actual = self.motor_juego.obtener_estado_actual()
         if estado_actual.turno != self.jugador_humano:
             return
 
-        # Realizar movimiento
         resultado = self.motor_juego.realizar_movimiento(posicion)
 
         if resultado.es_valido:
-            # Actualizar interfaz
             self.actualizar_interfaz()
-
-            # Verificar fin de juego
-            juego_terminado, ganador = self.motor_juego.verificar_fin_juego()
+            juego_terminado, _ = self.motor_juego.verificar_fin_juego()
             if not juego_terminado:
-                # Turno de la IA
                 self.procesar_turno_ia()
 
     def procesar_turno_ia(self) -> None:
@@ -80,7 +70,6 @@ class ControladorPrincipal:
             return
 
         posicion = self.estrategia_ia.seleccionar_movimiento(self.motor_juego)
-
         if posicion:
             self.motor_juego.realizar_movimiento(posicion)
 
@@ -90,7 +79,6 @@ class ControladorPrincipal:
         """Actualiza la interfaz con el estado actual"""
         estado = self.motor_juego.obtener_estado_actual()
         juego_terminado, ganador = self.motor_juego.verificar_fin_juego()
-
         self.interfaz.actualizar_display_juego(
             estado, estado.turno, juego_terminado, ganador
         )
