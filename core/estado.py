@@ -50,9 +50,11 @@ class GestorEstado:
             return MovimientoResult(
                 es_valido=False, mensaje="Posición fuera del tablero"
             )
+
         # Validar que la casilla esté vacía
         if estado.tablero[posicion.y][posicion.x] != VACIO:
             return MovimientoResult(es_valido=False, mensaje="Casilla ocupada")
+
         # Si es el primer movimiento del color
         cabeza = estado.cabeza_azul if estado.turno == AZUL else estado.cabeza_roja
         if not cabeza:
@@ -60,12 +62,25 @@ class GestorEstado:
             estado.tablero[posicion.y][posicion.x] = estado.turno
             estado._actualizar_cabezas()
             return MovimientoResult(es_valido=True)
+
         # Validar que la posición sea adyacente a la cabeza
         adyacentes = GestorEstado.obtener_posiciones_adyacentes(cabeza)
         if posicion not in adyacentes:
             return MovimientoResult(
                 es_valido=False, mensaje="Posición no adyacente a la cabeza"
             )
+
+        # Validar que no haya una ficha del mismo color al lado de la posición
+        for pos_adyacente in GestorEstado.obtener_posiciones_adyacentes(posicion):
+            if (
+                pos_adyacente != cabeza
+                and estado.tablero[pos_adyacente.y][pos_adyacente.x] == estado.turno
+            ):
+                return MovimientoResult(
+                    es_valido=False,
+                    mensaje="No se puede colocar ficha adyacente a otra del mismo color",
+                )
+
         # Colocar ficha
         estado.tablero[posicion.y][posicion.x] = estado.turno
         estado._actualizar_cabezas()

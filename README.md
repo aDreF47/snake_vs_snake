@@ -54,17 +54,24 @@ python main.py
 ```
 snake_vs_snake/
 ├── core/           # Motor del juego y lógica principal
+│   ├── __init__.py   
 │   ├── interfaces.py   # Definiciones compartidas
 │   ├── estado.py       # Gestión de estados
 │   └── juego.py        # Lógica principal
 ├── ai/             # Algoritmos de Inteligencia Artificial
+│   ├── __init__.py 
 │   ├── evaluador.py    # Función evaluadora f(e) = Ma(e) - Mr(e)
 │   └── estrategias.py  # Estrategias (aleatorio, greedy, minimax)
 ├── gui/            # Interfaz gráfica con pygame
+│   ├── __init__.py 
 │   └── interfaz.py     # Pantallas y controles
-├── tests/
-│   └── test.py      # Pruebas básicas
-└── main.py         # Punto de entrada
+├── tests/          # Para validar que cada módulo hace lo que debe.
+│   ├── __init__.py 
+│   ├── test_core.py    # pruebas del motor del juego
+│   ├── test_ai.py      # pruebas de las estrategias y evaluador
+│   └── test_gui.py     # pruebas de la interfaz pygame
+├── main.py          # Punto de entrada
+└── requirements.txt # requerimientos para python
 
 ```
 

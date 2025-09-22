@@ -1,5 +1,5 @@
 from typing import List, Optional, Tuple
-from core.interfaces import AZUL, ROJO, Posicion, EstadoJuego, MovimientoResult
+from core.interfaces import AZUL, ROJO, VACIO, Posicion, EstadoJuego, MovimientoResult
 from core.estado import GestorEstado
 
 
@@ -82,12 +82,22 @@ class MotorJuego:
         if not self.estado_actual:
             return True, None
 
+        # Verificar si hay alguna casilla vacía
+        hay_vacias = False
+        for y in range(len(self.estado_actual.tablero)):
+            for x in range(len(self.estado_actual.tablero[y])):
+                if self.estado_actual.tablero[y][x] == VACIO:
+                    hay_vacias = True
+                    break
+            if hay_vacias:
+                break
+
         # Verificar si hay movimientos disponibles
         movimientos = self.obtener_movimientos_validos(self.estado_actual.turno)
 
-        if not movimientos:
+        if not movimientos or not hay_vacias:
             self.juego_terminado = True
-            # El ganador es el oponente (quien forzó que no haya movimientos)
+            # El ganador es el último que movió
             self.ganador = ROJO if self.estado_actual.turno == AZUL else AZUL
 
         return self.juego_terminado, self.ganador
